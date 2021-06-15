@@ -35,6 +35,8 @@ class MFRC522:
   PICC_RESTORE   = 0xC2
   PICC_TRANSFER  = 0xB0
   PICC_HALT      = 0x50
+  PICC_REQIDL    = 0x26
+  PICC_WEQALL    = 0x52
   
   MI_OK       = 0
   MI_NOTAGERR = 1
@@ -131,8 +133,8 @@ class MFRC522:
       count = 0
       while True:
         self.ser.flushInput()
-        self.ser.write(chr(addr&0x7F))
-        self.ser.write(chr(val))
+        self.ser.write(bytes([addr&0x7F]))
+        self.ser.write(bytes([val]))
         tmp = ord(self.ser.read(1))   
         if(tmp == addr):      
           return True
@@ -143,10 +145,10 @@ class MFRC522:
     else:       
       self.ser.flushInput()
       for txBytes in range (0, size):
-        self.ser.write(chr(addr&0x7F))
+        self.ser.write(bytes([addr&0x7F]))
         tmp = ord(self.ser.read(1))
         if(tmp == addr):
-          self.ser.write(chr(val[txBytes]))
+          self.ser.write(bytes([val[txBytes]]))
         else:
           print ("Error de escritura en bloque")
           return False
@@ -155,7 +157,7 @@ class MFRC522:
 
   def readRegister(self, addr):
     self.ser.flushInput()
-    self.ser.write(chr(addr|0x80))
+    self.ser.write(bytes([addr|0x80]))
     val = self.ser.read(1)
     return ord(val)
 
@@ -225,7 +227,6 @@ class MFRC522:
         break
     
     self.clearBitMask(self.BitFramingReg, 0x80)
-  
     if i != 0:
       if (self.readRegister(self.ErrorReg) & 0x1B)==0x00:
         status = self.MI_OK
